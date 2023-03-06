@@ -24,6 +24,7 @@ public class Network extends Thread {
     private static Transactions outGoingPacket[];              /* Outgoing network buffer */
     private static String inBufferStatus, outBufferStatus;     /* Current status of the network buffers - normal, full, empty */
     private static String networkStatus;                       /* Network status - active, inactive */
+    private static Semaphore sem;
        
     /** 
      * Constructor of the Network class
@@ -31,10 +32,9 @@ public class Network extends Thread {
      * @return 
      * @param
      */
-     Network( )
+     Network()
       { 
     	 int i;  
-        
          System.out.println("\n Activating the network ...");
          clientIP = "192.168.2.0";
          serverIP = "216.120.40.10";
@@ -353,7 +353,6 @@ public class Network extends Thread {
      */
         public static boolean send(Transactions inPacket)
         {
-        	
         		  inComingPacket[inputIndexClient].setAccountNumber(inPacket.getAccountNumber());
         		  inComingPacket[inputIndexClient].setOperationType(inPacket.getOperationType());
         		  inComingPacket[inputIndexClient].setTransactionAmount(inPacket.getTransactionAmount());
@@ -558,9 +557,12 @@ public class Network extends Thread {
     {	
     	/* System.out.println("\n DEBUG : Network.run() - starting network thread"); */
     	
-    	while (true)
+    	while (true /*(!clientConnectionStatus.equals("disconnected")) && (!serverConnectionStatus.equals("disconnected"))*/)
     	{
-    		/*................................................................................................................................................................*/
+            if((clientConnectionStatus.equals("disconnected")) && (serverConnectionStatus.equals("disconnected")))
+                break;
+            Thread.yield();
     	}    
+        System.out.println("\n Terminating network thread - Client disconnected Server disconnected");   
     }
 }

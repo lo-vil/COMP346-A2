@@ -19,7 +19,7 @@ public class Client extends Thread {
     
     private static int numberOfTransactions;   		/* Number of transactions to process */
     private static int maxNbTransactions;      		/* Maximum number of transactions */
-    private static Transactions [] transaction; 	        /* Transactions to be processed */
+    private static Transactions transaction[]; 	        /* Transactions to be processed */
     private String clientOperation;    			/* sending or receiving */
        
 	/** Constructor method of Client class
@@ -156,10 +156,10 @@ public class Client extends Thread {
          while (i < getNumberOfTransactions())
          {  
 	
-        //	 while (Network.getInBufferStatus().equals("full"))
-        //	{ 
-        // 	  Thread.yield(); 	/* Yield the cpu if the network input buffer is full */
-        //  }
+        while (Network.getInBufferStatus().equals("full"))
+        { 
+            Thread.yield(); 	/* Yield the cpu if the network input buffer is full */
+        }
                                               	
             transaction[i].setTransactionStatus("sent");   /* Set current transaction status */
            
@@ -183,18 +183,18 @@ public class Client extends Thread {
          
          while (i < getNumberOfTransactions())
          {   
-        	// while (Network.getOutBufferStatus().equals("empty")) 
-        	// { 
-        	//	 Thread.yield(); 	/* Yield the cpu if the network output buffer is full */
-        		 
-        	// }
+        	while (Network.getOutBufferStatus().equals("empty")) 
+        	{ 
+        	    Thread.yield(); 	/* Yield the cpu if the network output buffer is full */
+            }
                                                                             	
             Network.receive(transact);                               	/* Receive updated transaction from the network buffer */
             
-            /* System.out.println("\n DEBUG : Client.receiveTransactions() - receiving updated transaction on account " + transact.getAccountNumber()); */
+            System.out.println("\n DEBUG : Client.receiveTransactions() - receiving updated transaction on account " + transact.getAccountNumber());
             
             System.out.println(transact);                               /* Display updated transaction */    
-            i++;
+            System.out.flush();
+             i++;
          } 
     }
      
@@ -220,10 +220,20 @@ public class Client extends Thread {
     	Transactions transact = new Transactions();
     	long sendClientStartTime, sendClientEndTime, receiveClientStartTime, receiveClientEndTime;
      
-         /*................................................................................................................................................................................................................*/
-              
-                System.out.println("\n Terminating client receiving thread - " + " Running time " +  (receiveClientEndTime - receiveClientStartTime));
-            }
-                
+        if(clientOperation.equals("sending")){
+            sendClientStartTime = System.currentTimeMillis();
+            sendTransactions();
+            sendClientEndTime = System.currentTimeMillis();
+            System.out.println("\n Terminating send client thread - " + "Running time " + (sendClientEndTime - sendClientStartTime) + " milliseconds");
+        }
+        else if(clientOperation.equals("receiving")){
+            receiveClientStartTime = System.currentTimeMillis();
+            receiveTransactions(transact);
+            receiveClientEndTime = System.currentTimeMillis();
+            System.out.println("\n Terminating receive client thread - " + "Running time " + (receiveClientEndTime - receiveClientStartTime) + " milliseconds");
+            Network.disconnect(Network.getClientIP());
+        }
     }
+                
 }
+
