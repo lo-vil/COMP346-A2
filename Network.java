@@ -24,7 +24,12 @@ public class Network extends Thread {
     private static Transactions outGoingPacket[];              /* Outgoing network buffer */
     private static String inBufferStatus, outBufferStatus;     /* Current status of the network buffers - normal, full, empty */
     private static String networkStatus;                       /* Network status - active, inactive */
-    private static Semaphore sem;
+    private static Semaphore semFullIn = new Semaphore(10);
+    private static Semaphore semFullOut = new Semaphore(10);
+    private static Semaphore semEmptyIn = new Semaphore(0);
+    private static Semaphore semEmptyOut = new Semaphore(0);
+    private static Semaphore mutex1 = new Semaphore(1);
+    private static Semaphore mutex2 = new Semaphore(1);
        
     /** 
      * Constructor of the Network class
@@ -353,6 +358,19 @@ public class Network extends Thread {
      */
         public static boolean send(Transactions inPacket)
         {
+            System.out.println("\n SEND");
+            try {
+                semFullIn.acquire();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            try {
+                mutex1.acquire();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         		  inComingPacket[inputIndexClient].setAccountNumber(inPacket.getAccountNumber());
         		  inComingPacket[inputIndexClient].setOperationType(inPacket.getOperationType());
         		  inComingPacket[inputIndexClient].setTransactionAmount(inPacket.getTransactionAmount());
@@ -375,7 +393,9 @@ public class Network extends Thread {
         		  {
         			  setInBufferStatus("normal");
         		  }
-            
+            System.out.println("Networt InBufferStatus: " + getInBufferStatus());
+            mutex1.release();
+            semEmptyIn.release();
             return true;
         }   
          
@@ -386,7 +406,19 @@ public class Network extends Thread {
      */
          public static boolean receive(Transactions outPacket)
         {
-
+            System.out.println("\n RECEIVE");
+            try {
+                semEmptyOut.acquire();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            try {
+                mutex2.acquire();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         		 outPacket.setAccountNumber(outGoingPacket[outputIndexClient].getAccountNumber());
         		 outPacket.setOperationType(outGoingPacket[outputIndexClient].getOperationType());
         		 outPacket.setTransactionAmount(outGoingPacket[outputIndexClient].getTransactionAmount());
@@ -409,7 +441,8 @@ public class Network extends Thread {
         		 {
         			 setOutBufferStatus("normal"); 
         		 }
-        	            
+            mutex2.release();
+        	semFullOut.release();  
              return true;
         }   
          
@@ -423,7 +456,19 @@ public class Network extends Thread {
      */
          public static boolean transferOut(Transactions outPacket)
         {
-	   	
+            System.out.println("\n TRANSFEROUT");
+            try {
+                semFullOut.acquire();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        try {
+            mutex2.acquire();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         		outGoingPacket[inputIndexServer].setAccountNumber(outPacket.getAccountNumber());
         		outGoingPacket[inputIndexServer].setOperationType(outPacket.getOperationType());
         		outGoingPacket[inputIndexServer].setTransactionAmount(outPacket.getTransactionAmount());
@@ -446,7 +491,8 @@ public class Network extends Thread {
         		{
         			setOutBufferStatus("normal");
         		}
-        	            
+            mutex2.release();
+        	semEmptyOut.release();
              return true;
         }   
          
@@ -458,7 +504,19 @@ public class Network extends Thread {
      */
        public static boolean transferIn(Transactions inPacket)
         {
-	
+            System.out.println("\n TRANSFERIN");
+            try {
+                semEmptyIn.acquire();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            try {
+                mutex1.acquire();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
     		     inPacket.setAccountNumber(inComingPacket[outputIndexServer].getAccountNumber());
     		     inPacket.setOperationType(inComingPacket[outputIndexServer].getOperationType());
     		     inPacket.setTransactionAmount(inComingPacket[outputIndexServer].getTransactionAmount());
@@ -481,7 +539,8 @@ public class Network extends Thread {
     		     {
     		    	 setInBufferStatus("normal");
     		     }
-            
+            mutex1.release();
+            semFullIn.release();
              return true;
         }   
          
