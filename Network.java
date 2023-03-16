@@ -358,7 +358,7 @@ public class Network extends Thread {
      */
         public static boolean send(Transactions inPacket)
         {
-            System.out.println("\n SEND");
+            // System.out.println("\n SEND");
             try {
                 semFullIn.acquire();
             } catch (InterruptedException e) {
@@ -393,7 +393,7 @@ public class Network extends Thread {
         		  {
         			  setInBufferStatus("normal");
         		  }
-            System.out.println("Networt InBufferStatus: " + getInBufferStatus());
+            //System.out.println("Network InBufferStatus: " + getInBufferStatus());
             mutex1.release();
             semEmptyIn.release();
             return true;
@@ -406,7 +406,7 @@ public class Network extends Thread {
      */
          public static boolean receive(Transactions outPacket)
         {
-            System.out.println("\n RECEIVE");
+            // System.out.println("\n RECEIVE");
             try {
                 semEmptyOut.acquire();
             } catch (InterruptedException e) {
@@ -456,19 +456,19 @@ public class Network extends Thread {
      */
          public static boolean transferOut(Transactions outPacket)
         {
-            System.out.println("\n TRANSFEROUT");
+            // System.out.println("\n TRANSFEROUT");
             try {
                 semFullOut.acquire();
             } catch (InterruptedException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
-        try {
-            mutex2.acquire();
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+            try {
+                mutex2.acquire();
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         		outGoingPacket[inputIndexServer].setAccountNumber(outPacket.getAccountNumber());
         		outGoingPacket[inputIndexServer].setOperationType(outPacket.getOperationType());
         		outGoingPacket[inputIndexServer].setTransactionAmount(outPacket.getTransactionAmount());
@@ -504,7 +504,7 @@ public class Network extends Thread {
      */
        public static boolean transferIn(Transactions inPacket)
         {
-            System.out.println("\n TRANSFERIN");
+            // System.out.println("\n TRANSFERIN");
             try {
                 semEmptyIn.acquire();
             } catch (InterruptedException e) {
